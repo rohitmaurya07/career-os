@@ -81,6 +81,7 @@ export const DSATrackerView: React.FC<DSATrackerViewProps> = ({
           currentAttempt: problem.notes || 'Looking for optimal time/space approach',
         }),
       });
+      if (!res.ok) throw new Error('Hint service unavailable');
       const data = await res.json();
       setHintData(data);
     } catch {

@@ -16,7 +16,6 @@ import {
 import {
   INITIAL_USER,
   INITIAL_SUBJECTS,
-  INITIAL_TASKS,
   INITIAL_DSA_PROBLEMS,
   INITIAL_ROADMAP,
   INITIAL_BEHAVIORAL_STORIES,
@@ -26,6 +25,8 @@ import {
   INITIAL_DEFAULT_WEIGHTS,
   generateInitialHeatmap,
 } from '../data/initialData';
+
+import { INITIAL_TASKS } from '../data/initial-daily-tasks-faang';
 
 const KEYS = {
   USER: 'careerforge_user',
@@ -410,6 +411,14 @@ export class AppStore {
 
   // Export full JSON backup
   public static exportFullBackup(): string {
+    const getOptionalArray = (key: string, fallback: unknown[]) => {
+      try {
+        const value: unknown = JSON.parse(localStorage.getItem(key) || 'null');
+        return Array.isArray(value) ? value : fallback;
+      } catch {
+        return fallback;
+      }
+    };
     const data = {
       user: this.getUser(),
       subjects: this.getSubjects(),
@@ -418,8 +427,10 @@ export class AppStore {
       roadmap: this.getRoadmap(),
       behavioral: this.getBehavioralStories(),
       mock: this.getMockInterviews(),
-      companies: this.getCompanyApplications(),
-      achievements: this.getAchievements(),
+      // These v2 collections are the active UI data. Keep legacy-key fallbacks so
+      // backups created by earlier releases remain portable.
+      companies: getOptionalArray('careerforge_companies_target', this.getCompanyApplications()),
+      achievements: getOptionalArray('careerforge_achievements_v2', this.getAchievements()),
       weights: this.getWeights(),
       heatmap: this.getHeatmap(),
       sessions: this.getStudySessions(),
@@ -464,8 +475,14 @@ export class AppStore {
       if (Array.isArray(parsed.roadmap)) this.saveRoadmap(parsed.roadmap);
       if (Array.isArray(parsed.behavioral)) this.saveBehavioralStories(parsed.behavioral);
       if (Array.isArray(parsed.mock)) this.saveMockInterviews(parsed.mock);
-      if (Array.isArray(parsed.companies)) this.saveCompanyApplications(parsed.companies);
-      if (Array.isArray(parsed.achievements)) this.saveAchievements(parsed.achievements);
+      if (Array.isArray(parsed.companies)) {
+        this.saveCompanyApplications(parsed.companies);
+        localStorage.setItem('careerforge_companies_target', JSON.stringify(parsed.companies));
+      }
+      if (Array.isArray(parsed.achievements)) {
+        this.saveAchievements(parsed.achievements);
+        localStorage.setItem('careerforge_achievements_v2', JSON.stringify(parsed.achievements));
+      }
       if (parsed.weights) this.saveWeights(parsed.weights);
       if (Array.isArray(parsed.heatmap)) this.saveHeatmap(parsed.heatmap);
       if (Array.isArray(parsed.sessions)) this.saveStudySessions(parsed.sessions);
@@ -502,5 +519,7 @@ export class AppStore {
     localStorage.removeItem(KEYS.HEATMAP);
     localStorage.removeItem(KEYS.SESSIONS);
     localStorage.removeItem(KEYS.NOTIFICATIONS);
+    localStorage.removeItem('careerforge_companies_target');
+    localStorage.removeItem('careerforge_achievements_v2');
   }
 }

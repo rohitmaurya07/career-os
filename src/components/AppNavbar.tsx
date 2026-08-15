@@ -90,9 +90,9 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               }}
               className="flex items-center gap-2.5 text-left group"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#5A0E24] via-rose-700 to-amber-500 flex items-center justify-center text-white font-black text-sm shadow-md shadow-rose-950/60 group-hover:scale-105 transition-transform">
+              {/* <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#5A0E24] via-rose-700 to-amber-500 flex items-center justify-center text-white font-black text-sm shadow-md shadow-rose-950/60 group-hover:scale-105 transition-transform">
                 CF
-              </div>
+              </div> */}
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-extrabold text-white text-base tracking-tight group-hover:text-rose-300 transition-colors">

@@ -34,6 +34,23 @@ export const StudyTimerModal: React.FC<StudyTimerModalProps> = ({
     }
   }, [selectedMinutes, isActive, sessionFinished]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setIsActive(false);
+      setSessionFinished(false);
+      stopAmbientNoise();
+      setAmbientAudio(false);
+      return;
+    }
+
+    const minutes = initialTask?.estimatedMinutes || 25;
+    setSelectedMinutes(minutes);
+    setSecondsRemaining(minutes * 60);
+    setSelectedSubject(initialTask?.subjectId || 'DSA');
+  }, [isOpen, initialTask]);
+
+  useEffect(() => () => stopAmbientNoise(), []);
+
   // Timer tick effect
   useEffect(() => {
     let interval: NodeJS.Timeout;

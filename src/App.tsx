@@ -209,6 +209,16 @@ const INITIAL_COMPANIES_LIST: CompanyTarget[] = [
   },
 ];
 
+function readLocalList<T>(key: string, fallback: T[]): T[] {
+  try {
+    const saved = localStorage.getItem(key);
+    const parsed: unknown = saved ? JSON.parse(saved) : null;
+    return Array.isArray(parsed) ? parsed as T[] : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function App() {
   // Core App State
   const [user, setUser] = useState<UserProfile>(() => AppStore.getUser());
@@ -218,24 +228,8 @@ export default function App() {
   const [roadmap, setRoadmap] = useState<RoadmapMonth[]>(() => AppStore.getRoadmap());
   const [behavioralStories, setBehavioralStories] = useState<BehavioralStory[]>(() => AppStore.getBehavioralStories());
   const [mockInterviews, setMockInterviews] = useState<MockInterview[]>(() => AppStore.getMockInterviews());
-  const [companies, setCompanies] = useState<CompanyTarget[]>(() => {
-    try {
-      const saved = localStorage.getItem('careerforge_companies_target');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
-    }
-    return INITIAL_COMPANIES_LIST;
-  });
-  const [achievements, setAchievements] = useState<Achievement[]>(() => {
-    try {
-      const saved = localStorage.getItem('careerforge_achievements_v2');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
-    }
-    return INITIAL_ACHIEVEMENTS_LIST;
-  });
+  const [companies, setCompanies] = useState<CompanyTarget[]>(() => readLocalList('careerforge_companies_target', INITIAL_COMPANIES_LIST));
+  const [achievements, setAchievements] = useState<Achievement[]>(() => readLocalList('careerforge_achievements_v2', INITIAL_ACHIEVEMENTS_LIST));
   const [weights, setWeights] = useState<ReadinessWeights>(() => AppStore.getWeights());
   const [heatmap, setHeatmap] = useState<HeatmapDay[]>(() => AppStore.getHeatmap());
 
@@ -399,17 +393,21 @@ export default function App() {
     const completedNow = updated.filter((t) => t.status === 'completed' && t.deadline === 'Today').length;
     setHeatmap((prev) => {
       const todayIndex = prev.findIndex((d) => d.date === todayStr);
+      const nextDay: HeatmapDay = {
+        date: todayStr,
+        count: completedNow,
+        studyMinutes: todayIndex >= 0 ? prev[todayIndex].studyMinutes : 0,
+        level: (completedNow >= 4 ? 4 : completedNow >= 3 ? 3 : completedNow >= 1 ? 2 : 0) as HeatmapDay['level'],
+      };
       if (todayIndex >= 0) {
         const nextHeatmap = [...prev];
-        nextHeatmap[todayIndex] = {
-          ...nextHeatmap[todayIndex],
-          count: completedNow,
-          level: (completedNow >= 4 ? 4 : completedNow >= 3 ? 3 : completedNow >= 1 ? 2 : 0) as 0 | 1 | 2 | 3 | 4,
-        };
+        nextHeatmap[todayIndex] = nextDay;
         AppStore.saveHeatmap(nextHeatmap);
         return nextHeatmap;
       }
-      return prev;
+      const nextHeatmap = [...prev, nextDay].sort((a, b) => a.date.localeCompare(b.date));
+      AppStore.saveHeatmap(nextHeatmap);
+      return nextHeatmap;
     });
 
     // Instantly calculate and update levels, readiness score, subject progress, and XP!
@@ -447,11 +445,13 @@ export default function App() {
   };
 
   const handleUpdateDsaProblem = (updated: DSAProblem) => {
+    const previous = dsaProblems.find((p) => p.id === updated.id);
     const list = dsaProblems.map((p) => (p.id === updated.id ? updated : p));
     updateDsaProblems(list);
-    const isSolved = updated.status === 'Solved';
-    const xpDelta = isSolved ? 50 : 0;
-    if (isSolved) {
+    const becameSolved = updated.status === 'Solved' && previous?.status !== 'Solved';
+    const becameUnsolved = updated.status !== 'Solved' && previous?.status === 'Solved';
+    const xpDelta = becameSolved ? 50 : becameUnsolved ? -50 : 0;
+    if (becameSolved) {
       soundService.playTaskPop();
     }
     syncUserReadinessAndLevels(tasks, list, behavioralStories, roadmap, user, xpDelta);
@@ -514,7 +514,14 @@ export default function App() {
         AppStore.saveHeatmap(nextHeatmap);
         return nextHeatmap;
       }
-      return prev;
+      const nextHeatmap = [...prev, {
+        date: todayStr,
+        count: 0,
+        studyMinutes: durationMinutes,
+        level: durationMinutes >= 90 ? 4 : durationMinutes >= 60 ? 3 : 1,
+      } satisfies HeatmapDay].sort((a, b) => a.date.localeCompare(b.date));
+      AppStore.saveHeatmap(nextHeatmap);
+      return nextHeatmap;
     });
 
     syncUserReadinessAndLevels(tasks, dsaProblems, behavioralStories, roadmap, user, xpEarned);
@@ -576,8 +583,8 @@ export default function App() {
     const freshRoadmap = AppStore.getRoadmap();
     const freshStories = AppStore.getBehavioralStories();
     const freshMocks = AppStore.getMockInterviews();
-    const freshCompanies = AppStore.getCompanyApplications();
-    const freshAchievements = AppStore.getAchievements();
+    const freshCompanies = readLocalList<CompanyTarget>('careerforge_companies_target', INITIAL_COMPANIES_LIST);
+    const freshAchievements = readLocalList<Achievement>('careerforge_achievements_v2', INITIAL_ACHIEVEMENTS_LIST);
     const freshWeights = AppStore.getWeights();
     const freshHeatmap = AppStore.getHeatmap();
 

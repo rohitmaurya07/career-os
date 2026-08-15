@@ -37,6 +37,21 @@ export const MockInterviewsView: React.FC<MockInterviewsViewProps> = ({
     readinessRating: string;
   } | null>(null);
 
+  const normalizeAiEvaluation = (data: unknown, mock: MockInterview) => {
+    const result = data as Partial<{ scoreOutOf10: number; strengths: string[]; weaknesses: string[]; actionItems: string[]; verdict: string; summary: string; readinessRating: string }>;
+    const rating = result.readinessRating || result.verdict || (result.scoreOutOf10 && result.scoreOutOf10 >= 8 ? 'Interview Ready' : 'Needs Polish');
+    return {
+      summary: result.summary || [
+        ...(result.strengths?.length ? [`Strengths: ${result.strengths.join('; ')}`] : []),
+        ...(result.weaknesses?.length ? [`Focus areas: ${result.weaknesses.join('; ')}`] : []),
+      ].join(' ') || `Review ${mock.topic} and address the recorded weak areas before the next mock.`,
+      strengths: result.strengths || [],
+      weaknesses: result.weaknesses || mock.weakAreas,
+      suggestedActionTasks: result.actionItems || mock.actionItems,
+      readinessRating: rating,
+    };
+  };
+
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) return;
@@ -89,13 +104,14 @@ export const MockInterviewsView: React.FC<MockInterviewsViewProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           topic: mock.topic,
-          notes: mock.feedback,
-          weakAreas: mock.weakAreas,
-          scoreOutOf10: mock.scoreOutOf10,
+          interviewType: mock.category || mock.type || 'Full Mock',
+          company: mock.company || 'Target company',
+          candidateNotes: mock.feedback,
         }),
       });
+      if (!res.ok) throw new Error('Feedback service unavailable');
       const data = await res.json();
-      setAiEvaluation(data);
+      setAiEvaluation(normalizeAiEvaluation(data, mock));
     } catch {
       setAiEvaluation({
         summary: `Strong technical grounding in ${mock.topic}. Next round focus should emphasize crisp communication under time constraints.`,
