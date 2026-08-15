@@ -421,9 +421,86 @@ export class AppStore {
       companies: this.getCompanyApplications(),
       achievements: this.getAchievements(),
       weights: this.getWeights(),
+      heatmap: this.getHeatmap(),
       sessions: this.getStudySessions(),
+      notifications: this.getNotificationSettings(),
+      version: '2.0',
       exportedAt: new Date().toISOString(),
     };
     return JSON.stringify(data, null, 2);
+  }
+
+  // Import and validate JSON backup
+  public static importFullBackup(jsonString: string): {
+    success: boolean;
+    error?: string;
+    stats?: {
+      tasksCount: number;
+      dsaCount: number;
+      storiesCount: number;
+      roadmapMonths: number;
+      companiesCount: number;
+      score: number;
+    };
+  } {
+    try {
+      const parsed = JSON.parse(jsonString);
+      if (!parsed || typeof parsed !== 'object') {
+        return { success: false, error: 'Invalid file format: JSON root must be an object.' };
+      }
+
+      // Check for mandatory fields or valid schema
+      if (!parsed.user && !parsed.tasks && !parsed.dsa) {
+        return {
+          success: false,
+          error: 'Unrecognized CareerForge backup file. Missing critical profile or task structures.',
+        };
+      }
+
+      if (parsed.user) this.saveUser(parsed.user);
+      if (Array.isArray(parsed.subjects)) this.saveSubjects(parsed.subjects);
+      if (Array.isArray(parsed.tasks)) this.saveTasks(parsed.tasks);
+      if (Array.isArray(parsed.dsa)) this.saveDSAProblems(parsed.dsa);
+      if (Array.isArray(parsed.roadmap)) this.saveRoadmap(parsed.roadmap);
+      if (Array.isArray(parsed.behavioral)) this.saveBehavioralStories(parsed.behavioral);
+      if (Array.isArray(parsed.mock)) this.saveMockInterviews(parsed.mock);
+      if (Array.isArray(parsed.companies)) this.saveCompanyApplications(parsed.companies);
+      if (Array.isArray(parsed.achievements)) this.saveAchievements(parsed.achievements);
+      if (parsed.weights) this.saveWeights(parsed.weights);
+      if (Array.isArray(parsed.heatmap)) this.saveHeatmap(parsed.heatmap);
+      if (Array.isArray(parsed.sessions)) this.saveStudySessions(parsed.sessions);
+      if (parsed.notifications) this.saveNotificationSettings(parsed.notifications);
+
+      return {
+        success: true,
+        stats: {
+          tasksCount: Array.isArray(parsed.tasks) ? parsed.tasks.length : 0,
+          dsaCount: Array.isArray(parsed.dsa) ? parsed.dsa.length : 0,
+          storiesCount: Array.isArray(parsed.behavioral) ? parsed.behavioral.length : 0,
+          roadmapMonths: Array.isArray(parsed.roadmap) ? parsed.roadmap.length : 0,
+          companiesCount: Array.isArray(parsed.companies) ? parsed.companies.length : 0,
+          score: parsed.user?.careerWealthScore || 0,
+        },
+      };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Failed to parse JSON file syntax.' };
+    }
+  }
+
+  // Reset to default factory initial seed
+  public static resetToFactoryDefaults() {
+    localStorage.removeItem(KEYS.USER);
+    localStorage.removeItem(KEYS.SUBJECTS);
+    localStorage.removeItem(KEYS.TASKS);
+    localStorage.removeItem(KEYS.DSA);
+    localStorage.removeItem(KEYS.ROADMAP);
+    localStorage.removeItem(KEYS.BEHAVIORAL);
+    localStorage.removeItem(KEYS.MOCK);
+    localStorage.removeItem(KEYS.COMPANIES);
+    localStorage.removeItem(KEYS.ACHIEVEMENTS);
+    localStorage.removeItem(KEYS.WEIGHTS);
+    localStorage.removeItem(KEYS.HEATMAP);
+    localStorage.removeItem(KEYS.SESSIONS);
+    localStorage.removeItem(KEYS.NOTIFICATIONS);
   }
 }

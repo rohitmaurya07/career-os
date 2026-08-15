@@ -34,6 +34,7 @@ import { AchievementsModal } from './components/AchievementsModal';
 import { WeeklyReviewModal } from './components/WeeklyReviewModal';
 import { SmartPlanModal } from './components/SmartPlanModal';
 import { PWAInstallModal } from './components/PWAInstallModal';
+import { ImportExportModal } from './components/ImportExportModal';
 import {
   Sparkles,
   Trophy,
@@ -55,6 +56,7 @@ import {
   ShieldAlert,
   Smartphone,
   Wifi,
+  ArrowUpDown,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -250,6 +252,7 @@ export default function App() {
   const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState<boolean>(false);
   const [isSmartPlanOpen, setIsSmartPlanOpen] = useState<boolean>(false);
   const [isPWAInstallOpen, setIsPWAInstallOpen] = useState<boolean>(false);
+  const [isImportExportOpen, setIsImportExportOpen] = useState<boolean>(false);
 
   // Synchronize dynamic readiness score whenever subjects or weights change
   useEffect(() => {
@@ -565,17 +568,45 @@ export default function App() {
     AppStore.saveUser(finalizedUser);
   };
 
+  // Reload and refresh entire application state after backup import or reset
+  const handleReloadAllData = () => {
+    const freshUser = AppStore.getUser();
+    const freshTasks = AppStore.getTasks();
+    const freshDSA = AppStore.getDSAProblems();
+    const freshRoadmap = AppStore.getRoadmap();
+    const freshStories = AppStore.getBehavioralStories();
+    const freshMocks = AppStore.getMockInterviews();
+    const freshCompanies = AppStore.getCompanyApplications();
+    const freshAchievements = AppStore.getAchievements();
+    const freshWeights = AppStore.getWeights();
+    const freshHeatmap = AppStore.getHeatmap();
+
+    setUser(freshUser);
+    setTasks(freshTasks);
+    setDsaProblems(freshDSA);
+    setRoadmap(freshRoadmap);
+    setBehavioralStories(freshStories);
+    setMockInterviews(freshMocks);
+    setCompanies(freshCompanies);
+    setAchievements(freshAchievements);
+    setWeights(freshWeights);
+    setHeatmap(freshHeatmap);
+
+    const updatedSubjects = AppStore.calculateSubjectsProgress(
+      AppStore.getSubjects(),
+      freshTasks,
+      freshDSA,
+      freshStories,
+      freshRoadmap
+    );
+    setSubjects(updatedSubjects);
+    AppStore.saveSubjects(updatedSubjects);
+  };
+
   // Export JSON Backup
   const handleExportBackup = () => {
     soundService.playTap();
-    const backupStr = AppStore.exportFullBackup();
-    const blob = new Blob([backupStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `CareerForge_Backup_${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    setIsImportExportOpen(true);
   };
 
   // Pending counts for navigation badges
@@ -614,6 +645,7 @@ export default function App() {
         onOpenPWAInstall={() => setIsPWAInstallOpen(true)}
         onOpenTiersModal={() => setIsTiersOpen(true)}
         onOpenAchievements={() => setIsAchievementsOpen(true)}
+        onOpenImportExport={() => setIsImportExportOpen(true)}
       />
 
       {/* Main Responsive Viewport Area */}
@@ -875,20 +907,24 @@ export default function App() {
                   </p>
                   <div className="flex flex-wrap gap-3">
                     <button
-                      onClick={handleExportBackup}
-                      className="py-2 px-4 rounded-xl bg-[#181D29] hover:bg-slate-800 border border-white/10 text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors"
+                      id="btn-hub-import-export"
+                      onClick={() => {
+                        soundService.playTap();
+                        setIsImportExportOpen(true);
+                      }}
+                      className="py-2 px-4 rounded-xl bg-[#5A0E24] hover:bg-rose-700 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-rose-950/40 active:scale-[0.98]"
                     >
-                      <Download className="w-4 h-4 text-rose-400" />
-                      Export Full Backup (JSON)
+                      <ArrowUpDown className="w-4 h-4" />
+                      Import / Export Backup (JSON)
                     </button>
                     <button
                       onClick={() => {
                         soundService.playTap();
                         setIsWeeklyReviewOpen(true);
                       }}
-                      className="py-2 px-4 rounded-xl bg-[#5A0E24]/60 hover:bg-[#5A0E24] border border-rose-800/40 text-rose-200 font-medium text-xs flex items-center justify-center gap-2 transition-colors"
+                      className="py-2 px-4 rounded-xl bg-[#181D29] hover:bg-slate-800 border border-white/10 text-slate-200 font-medium text-xs flex items-center justify-center gap-2 transition-colors"
                     >
-                      <Calendar className="w-4 h-4" />
+                      <Calendar className="w-4 h-4 text-rose-400" />
                       Weekly Retrospective
                     </button>
                   </div>
@@ -1012,6 +1048,12 @@ export default function App() {
       <PWAInstallModal
         isOpen={isPWAInstallOpen}
         onClose={() => setIsPWAInstallOpen(false)}
+      />
+
+      <ImportExportModal
+        isOpen={isImportExportOpen}
+        onClose={() => setIsImportExportOpen(false)}
+        onDataRestored={handleReloadAllData}
       />
     </div>
   );

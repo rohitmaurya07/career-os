@@ -15,6 +15,7 @@ import {
   Wifi,
   WifiOff,
   Trophy,
+  ArrowUpDown,
 } from 'lucide-react';
 import { TabType } from './BottomNav';
 import { soundService } from '../services/audio';
@@ -34,6 +35,7 @@ interface AppNavbarProps {
   onOpenPWAInstall: () => void;
   onOpenTiersModal: () => void;
   onOpenAchievements: () => void;
+  onOpenImportExport: () => void;
 }
 
 export const AppNavbar: React.FC<AppNavbarProps> = ({
@@ -49,6 +51,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
   onOpenPWAInstall,
   onOpenTiersModal,
   onOpenAchievements,
+  onOpenImportExport,
 }) => {
   const [isOnline, setIsOnline] = useState<boolean>(pwaManager.getIsOnline());
 
@@ -163,6 +166,19 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400 animate-pulse" />
               <span>{user.currentStreak}d</span>
             </div>
+
+            {/* Import / Export Backup Data */}
+            <button
+              id="btn-navbar-import-export"
+              onClick={() => {
+                soundService.playTap();
+                onOpenImportExport();
+              }}
+              className="p-2 rounded-xl bg-[#141824] hover:bg-[#1A2030] border border-white/10 text-rose-300 hover:text-rose-200 transition-colors"
+              title="Import / Export Data Backup (JSON)"
+            >
+              <ArrowUpDown className="w-4 h-4" />
+            </button>
 
             {/* Achievements Trophy */}
             <button
