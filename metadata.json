@@ -1,0 +1,6 @@
+{
+  "name": "CareerForge",
+  "description": "FAANG & MNC Career Preparation Tracker built on the MERN stack (MongoDB, Express, React, Node.js) with Tailwind CSS — Career Wealth system, DSA pattern bank, 7-month roadmap, offline study timer, and AI readiness analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

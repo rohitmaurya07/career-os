@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2A0812"/>
+      <stop offset="45%" stop-color="#141824"/>
+      <stop offset="100%" stop-color="#080A0F"/>
+    </linearGradient>
+    <linearGradient id="primaryGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FB7185"/>
+      <stop offset="50%" stop-color="#E11D48"/>
+      <stop offset="100%" stop-color="#881337"/>
+    </linearGradient>
+    <linearGradient id="goldGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF08A"/>
+      <stop offset="50%" stop-color="#FACC15"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <filter id="glow512" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Base Rounded Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad512)" stroke="#5A0E24" stroke-width="8"/>
+
+  <!-- Subtle Radial Rings -->
+  <circle cx="256" cy="256" r="170" fill="none" stroke="#F43F5E" stroke-opacity="0.12" stroke-width="3" stroke-dasharray="8 8"/>
+  <circle cx="256" cy="256" r="125" fill="none" stroke="#F43F5E" stroke-opacity="0.18" stroke-width="3"/>
+
+  <!-- Core Forge Shield / Diamond Icon -->
+  <g transform="translate(256, 256)">
+    <!-- Glowing background accent -->
+    <path d="M 0 -130 L 130 0 L 0 130 L -130 0 Z" fill="#E11D48" fill-opacity="0.15" filter="url(#glow512)"/>
+    
+    <!-- Outer Diamond -->
+    <path d="M 0 -115 L 115 0 L 0 115 L -115 0 Z" fill="#0A0D15" stroke="url(#primaryGrad512)" stroke-width="10" stroke-linejoin="round"/>
+    
+    <!-- Code Brackets -->
+    <!-- Left Bracket < -->
+    <path d="M -45 -48 L -82 0 L -45 48" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Right Bracket > -->
+    <path d="M 45 -48 L 82 0 L 45 48" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Center Forge Fire / Star -->
+    <path d="M 0 -48 Q 12 -12 40 0 Q 12 12 0 48 Q -12 12 -40 0 Q -12 -12 0 -48 Z" fill="url(#goldGrad512)"/>
+    <circle cx="0" cy="0" r="10" fill="#FFFFFF"/>
+  </g>
+
+  <!-- FAANG Star Badge on Top Right -->
+  <circle cx="390" cy="120" r="38" fill="#181D29" stroke="#E11D48" stroke-width="5"/>
+  <path d="M 390 98 L 396.5 112.5 L 411.5 114.5 L 400.5 124.5 L 403.5 139.5 L 390 132 L 376.5 139.5 L 379.5 124.5 L 368.5 114.5 L 383.5 112.5 Z" fill="url(#goldGrad512)"/>
+
+  <!-- CareerForge Monogram Bottom Banner -->
+  <rect x="146" y="420" width="220" height="42" rx="21" fill="#181D29" stroke="#334155" stroke-width="2"/>
+  <text x="256" y="447" fill="#F43F5E" font-size="20" font-weight="900" font-family="system-ui, -apple-system, sans-serif" text-anchor="middle" letter-spacing="3">CAREERFORGE</text>
+</svg>
